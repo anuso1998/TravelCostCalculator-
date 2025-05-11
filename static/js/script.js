@@ -8,9 +8,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const milesInput = document.getElementById('miles');
     const milesHelp = document.getElementById('miles-help');
     
+    // Store calculation data for cutoff
+    let lastCalculation = null;
+    
     // Format currency function
     const formatCurrency = (amount) => {
-        return typeof amount === 'string' ? amount : `$${amount.toFixed(2)}`;
+        if (typeof amount === 'string' && amount.startsWith('$')) {
+            return amount; // Already formatted
+        }
+        return `$${parseFloat(amount).toFixed(2)}`;
     };
     
     // Update miles input placeholder based on round trip selection
@@ -63,95 +69,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show error message
                 errorText.textContent = data.error;
                 errorDiv.classList.remove('d-none');
+                lastCalculation = null;
             } else {
+                // Store the calculation data for cutoff feature
+                lastCalculation = data;
+                
                 // Display result based on whether it's a round trip or single trip
-                const tripTypeDisplay = data.trip_type.charAt(0).toUpperCase() + data.trip_type.slice(1);
-                
-                let resultHTML = '';
-                
-                if (data.is_round_trip) {
-                    // Round trip result display
-                    resultHTML = `
-                        <h4 class="text-center mb-3">Round Trip Cost Summary</h4>
-                        <div class="table-responsive">
-                            <table class="table table-bordered mb-0">
-                                <tbody>
-                                    <tr>
-                                        <th>Trip Type:</th>
-                                        <td>${tripTypeDisplay}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>First Leg (${data.a_leg} miles):</th>
-                                        <td>${data.a_amount}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Return Leg (${data.b_leg} miles):</th>
-                                        <td>${data.b_amount}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Subtotal:</th>
-                                        <td>${data.subtotal}</td>
-                                    </tr>`;
-                    
-                    if (data.include_tax) {
-                        resultHTML += `
-                                    <tr>
-                                        <th>Tax (10%):</th>
-                                        <td>${data.tax_amount}</td>
-                                    </tr>`;
-                    }
-                    
-                    resultHTML += `
-                                    <tr class="table-primary">
-                                        <th>Total:</th>
-                                        <td><strong>${data.total}</strong></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>`;
-                } else {
-                    // Single trip result display
-                    resultHTML = `
-                        <h4 class="text-center mb-3">Trip Cost Summary</h4>
-                        <div class="table-responsive">
-                            <table class="table table-bordered mb-0">
-                                <tbody>
-                                    <tr>
-                                        <th>Trip Type:</th>
-                                        <td>${tripTypeDisplay}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Distance:</th>
-                                        <td>${data.miles} miles</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Subtotal:</th>
-                                        <td>${data.subtotal}</td>
-                                    </tr>`;
-                    
-                    if (data.include_tax) {
-                        resultHTML += `
-                                    <tr>
-                                        <th>Tax (10%):</th>
-                                        <td>${data.tax_amount}</td>
-                                    </tr>`;
-                    }
-                    
-                    resultHTML += `
-                                    <tr class="table-primary">
-                                        <th>Total:</th>
-                                        <td><strong>${data.total}</strong></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>`;
-                }
-                
-                resultDetails.innerHTML = resultHTML;
-                resultDiv.classList.remove('d-none');
-                
-                // Scroll to the result
-                resultDiv.scrollIntoView({ behavior: 'smooth' });
+                displayResult(data);
             }
         })
         .catch(error => {
@@ -159,8 +83,172 @@ document.addEventListener('DOMContentLoaded', function() {
             errorText.textContent = 'An error occurred while calculating the trip cost. Please try again.';
             errorDiv.classList.remove('d-none');
             console.error('Error:', error);
+            lastCalculation = null;
         });
     });
+    
+    // Function to display result
+    function displayResult(data, cutoffPercentage = null, cutoffAmount = null) {
+        const tripTypeDisplay = data.trip_type.charAt(0).toUpperCase() + data.trip_type.slice(1);
+        let resultHTML = '';
+        
+        if (data.is_round_trip) {
+            // Round trip result display
+            resultHTML = `
+                <h4 class="text-center mb-3">Round Trip Cost Summary</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <tr>
+                                <th>Trip Type:</th>
+                                <td>${tripTypeDisplay}</td>
+                            </tr>
+                            <tr>
+                                <th>First Leg (${data.a_leg} miles):</th>
+                                <td>${data.a_amount}</td>
+                            </tr>
+                            <tr>
+                                <th>Return Leg (${data.b_leg} miles):</th>
+                                <td>${data.b_amount}</td>
+                            </tr>
+                            <tr>
+                                <th>Subtotal:</th>
+                                <td>${data.subtotal}</td>
+                            </tr>`;
+            
+            if (data.include_tax) {
+                resultHTML += `
+                            <tr>
+                                <th>Tax (10%):</th>
+                                <td>${data.tax_amount}</td>
+                            </tr>`;
+            }
+            
+            resultHTML += `
+                            <tr class="table-primary">
+                                <th>Total:</th>
+                                <td><strong>${data.total}</strong></td>
+                            </tr>`;
+            
+            // Add cutoff information if provided
+            if (cutoffPercentage && cutoffAmount) {
+                resultHTML += `
+                            <tr class="table-success">
+                                <th>Cutoff (${cutoffPercentage}%):</th>
+                                <td>-${formatCurrency(cutoffAmount)}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <th>Final Total:</th>
+                                <td><strong>${formatCurrency(data.total_raw - cutoffAmount)}</strong></td>
+                            </tr>`;
+            }
+            
+            resultHTML += `
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            // Single trip result display
+            resultHTML = `
+                <h4 class="text-center mb-3">Trip Cost Summary</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <tr>
+                                <th>Trip Type:</th>
+                                <td>${tripTypeDisplay}</td>
+                            </tr>
+                            <tr>
+                                <th>Distance:</th>
+                                <td>${data.miles} miles</td>
+                            </tr>
+                            <tr>
+                                <th>Subtotal:</th>
+                                <td>${data.subtotal}</td>
+                            </tr>`;
+            
+            if (data.include_tax) {
+                resultHTML += `
+                            <tr>
+                                <th>Tax (10%):</th>
+                                <td>${data.tax_amount}</td>
+                            </tr>`;
+            }
+            
+            resultHTML += `
+                            <tr class="table-primary">
+                                <th>Total:</th>
+                                <td><strong>${data.total}</strong></td>
+                            </tr>`;
+            
+            // Add cutoff information if provided
+            if (cutoffPercentage && cutoffAmount) {
+                resultHTML += `
+                            <tr class="table-success">
+                                <th>Cutoff (${cutoffPercentage}%):</th>
+                                <td>-${formatCurrency(cutoffAmount)}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <th>Final Total:</th>
+                                <td><strong>${formatCurrency(data.total_raw - cutoffAmount)}</strong></td>
+                            </tr>`;
+            }
+            
+            resultHTML += `
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+        
+        // Add cutoff feature only if we have a calculation and no cutoff has been applied yet
+        if (!cutoffPercentage) {
+            resultHTML += `
+                <div class="mt-3">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Apply Cutoff</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input type="number" id="cutoff-percentage" class="form-control" placeholder="Enter percentage" min="0" max="100" step="0.1">
+                                <span class="input-group-text">%</span>
+                                <button class="btn btn-success" type="button" id="apply-cutoff">Apply Cutoff</button>
+                            </div>
+                            <div class="form-text">Enter a percentage to subtract from the total cost</div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+        
+        resultDetails.innerHTML = resultHTML;
+        resultDiv.classList.remove('d-none');
+        
+        // Add event listener for cutoff button
+        const applyButton = document.getElementById('apply-cutoff');
+        if (applyButton) {
+            applyButton.addEventListener('click', function() {
+                const percentageInput = document.getElementById('cutoff-percentage');
+                const percentage = parseFloat(percentageInput.value);
+                
+                if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+                    alert('Please enter a valid percentage between 0 and 100');
+                    return;
+                }
+                
+                // Calculate cutoff amount
+                const cutoffAmount = (lastCalculation.total_raw * percentage) / 100;
+                
+                // Re-display the result with cutoff applied
+                displayResult(lastCalculation, percentage, cutoffAmount);
+                
+                // Scroll to the result
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        // Scroll to the result
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
     
     // Clear result and error when inputs change
     const inputs = calculatorForm.querySelectorAll('input, select');
@@ -168,6 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function() {
             resultDiv.classList.add('d-none');
             errorDiv.classList.add('d-none');
+            lastCalculation = null;
         });
     });
     

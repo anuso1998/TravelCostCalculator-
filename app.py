@@ -63,6 +63,7 @@ def calculate():
                     tax = subtotal * 0.10
                 
                 total = subtotal + tax
+                total_raw = total  # Store raw numeric value for cutoff calculations
                 
                 # Format the result
                 result = {
@@ -76,7 +77,8 @@ def calculate():
                     'subtotal': f"${subtotal:.2f}",
                     'include_tax': include_tax,
                     'tax_amount': f"${tax:.2f}",
-                    'total': f"${total:.2f}"
+                    'total': f"${total:.2f}",
+                    'total_raw': total_raw  # Include raw value for JavaScript
                 }
                 
             except ValueError:
@@ -97,6 +99,7 @@ def calculate():
                     tax = amount * 0.10
                 
                 total = amount + tax
+                total_raw = total  # Store raw numeric value for cutoff calculations
                 
                 # Format the result
                 result = {
@@ -106,7 +109,8 @@ def calculate():
                     'subtotal': f"${amount:.2f}",
                     'include_tax': include_tax,
                     'tax_amount': f"${tax:.2f}",
-                    'total': f"${total:.2f}"
+                    'total': f"${total:.2f}",
+                    'total_raw': total_raw  # Include raw value for JavaScript
                 }
                 
             except ValueError:
