@@ -31,9 +31,31 @@
                             </div>
                             
                             <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="round-trip-switch" name="is_round_trip">
+                                    <label class="form-check-label" for="round-trip-switch">Round Trip (Two Legs)</label>
+                                </div>
+                                <div class="form-text" id="round-trip-help">
+                                    For round trips, enter distances in format a+b (e.g., 25+25)
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
                                 <label for="miles" class="form-label">Distance (miles):</label>
-                                <input type="number" class="form-control" id="miles" name="miles" step="0.01" min="0" required>
-                                <div class="form-text">Enter the distance in miles (must be a positive number)</div>
+                                <input type="text" class="form-control" id="miles" name="miles" required>
+                                <div class="form-text" id="miles-help">
+                                    Enter distance as a single number (e.g., 25) or for round trips in format a+b (e.g., 25+30)
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="tax-switch" name="include_tax">
+                                    <label class="form-check-label" for="tax-switch">Include 10% Tax</label>
+                                </div>
+                                <div class="form-text">
+                                    Add 10% tax to the trip cost
+                                </div>
                             </div>
                             
                             <div class="d-grid">
@@ -43,7 +65,7 @@
                         
                         <div id="result" class="mt-4 d-none">
                             <div class="alert alert-success">
-                                <h4 class="text-center mb-0" id="result-text"></h4>
+                                <div id="result-details"></div>
                             </div>
                         </div>
                         
@@ -81,6 +103,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div class="mt-2">
+                            <small><strong>Note:</strong> For round trips, cost is calculated separately for each leg and then added together.</small>
+                        </div>
                     </div>
                 </div>
             </div>
