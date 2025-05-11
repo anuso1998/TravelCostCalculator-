@@ -31,31 +31,51 @@ def calculate():
         if trip_type not in ['short', 'long']:
             return jsonify({'error': 'Invalid trip type. Please select "short" or "long".'})
         
-        # Auto-detect round trip if '+' is in the miles string
+        # Auto-detect multi-leg trip if '+' is in the miles string
         if '+' in miles_str and not is_round_trip:
             is_round_trip = True
         
-        # Check if we have a round trip with legs
+        # Check if we have a multi-leg trip
         if is_round_trip:
-            # Validate miles format for round trip (a+b format)
+            # Validate miles format for multi-leg trip (a+b+c+...+n format)
             if '+' not in miles_str:
-                return jsonify({'error': 'For round trips, enter distances in format a+b (e.g., 25+25).'})
+                return jsonify({'error': 'For multi-leg trips, enter distances in format a+b+c+... (e.g., 25+30+15).'})
             
             try:
-                parts = miles_str.split('+')
-                if len(parts) != 2:
-                    return jsonify({'error': 'Invalid format. Use a+b (e.g., 25+25) for round trips.'})
+                # Split the string by '+' and process each leg
+                leg_parts = miles_str.split('+')
                 
-                a_leg = float(parts[0].strip())
-                b_leg = float(parts[1].strip())
+                # Make sure we have at least one leg
+                if len(leg_parts) < 1:
+                    return jsonify({'error': 'Please enter at least one leg distance.'})
                 
-                if a_leg < 0 or b_leg < 0:
-                    return jsonify({'error': 'Miles cannot be negative.'})
+                # Process each leg
+                legs = []
+                leg_amounts = []
+                total_miles = 0
+                subtotal = 0
                 
-                # Calculate amount for each leg
-                a_amount = calculate_leg_amount(a_leg, trip_type)
-                b_amount = calculate_leg_amount(b_leg, trip_type)
-                subtotal = a_amount + b_amount
+                for i, leg_str in enumerate(leg_parts):
+                    leg_distance = float(leg_str.strip())
+                    
+                    if leg_distance < 0:
+                        return jsonify({'error': 'Leg distances cannot be negative.'})
+                    
+                    # Calculate amount for this leg
+                    leg_amount = calculate_leg_amount(leg_distance, trip_type)
+                    
+                    # Add to totals
+                    total_miles += leg_distance
+                    subtotal += leg_amount
+                    
+                    # Store leg info
+                    legs.append({
+                        'leg_num': i + 1,
+                        'distance': leg_distance,
+                        'amount': leg_amount,
+                        'amount_formatted': f"${leg_amount:.2f}"
+                    })
+                    leg_amounts.append(leg_amount)
                 
                 # Calculate tax if requested
                 tax = 0
@@ -69,11 +89,10 @@ def calculate():
                 result = {
                     'success': True,
                     'trip_type': trip_type,
-                    'is_round_trip': True,
-                    'a_leg': a_leg,
-                    'b_leg': b_leg,
-                    'a_amount': f"${a_amount:.2f}",
-                    'b_amount': f"${b_amount:.2f}",
+                    'is_multi_leg': True,
+                    'legs': legs,
+                    'total_miles': total_miles,
+                    'leg_count': len(legs),
                     'subtotal': f"${subtotal:.2f}",
                     'include_tax': include_tax,
                     'tax_amount': f"${tax:.2f}",
@@ -82,7 +101,7 @@ def calculate():
                 }
                 
             except ValueError:
-                return jsonify({'error': 'Please enter valid numbers for miles in format a+b.'})
+                return jsonify({'error': 'Please enter valid numbers for all leg distances separated by + signs.'})
         else:
             # Single trip calculation
             try:

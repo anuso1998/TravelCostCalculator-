@@ -19,14 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
         return `$${parseFloat(amount).toFixed(2)}`;
     };
     
-    // Update miles input placeholder based on round trip selection
+    // Update miles input placeholder based on multi-leg trip selection
     roundTripSwitch.addEventListener('change', function() {
         if (this.checked) {
-            milesInput.placeholder = 'Enter in format: a+b (e.g., 25+30)';
-            milesHelp.innerHTML = '<strong>Format required:</strong> a+b (e.g., 25+30) where a is the first leg distance and b is the return leg distance';
+            milesInput.placeholder = 'Enter in format: a+b+c+... (e.g., 25+30+15)';
+            milesHelp.innerHTML = `
+                <small>
+                    <strong>Format required:</strong> a+b+c+... where each value is a leg distance<br>
+                    <strong>Examples:</strong> 
+                    <ul class="mb-0">
+                        <li>Two legs: 25+30</li>
+                        <li>Three legs: 25+30+15</li>
+                        <li>Four legs: 10+20+30+15</li>
+                    </ul>
+                </small>`;
         } else {
             milesInput.placeholder = 'Enter distance (e.g., 25)';
-            milesHelp.innerHTML = 'Enter distance as a single number (e.g., 25)';
+            milesHelp.innerHTML = '<small><strong>Single Trip:</strong> Enter distance as a single number (e.g., 25)</small>';
         }
     });
     
@@ -92,10 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const tripTypeDisplay = data.trip_type.charAt(0).toUpperCase() + data.trip_type.slice(1);
         let resultHTML = '';
         
-        if (data.is_round_trip) {
-            // Round trip result display
+        if (data.is_multi_leg) {
+            // Multi-leg trip result display
             resultHTML = `
-                <h4 class="text-center mb-3">Round Trip Cost Summary</h4>
+                <h4 class="text-center mb-3">Multi-Leg Trip Cost Summary</h4>
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0">
                         <tbody>
@@ -104,13 +113,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td>${tripTypeDisplay}</td>
                             </tr>
                             <tr>
-                                <th>First Leg (${data.a_leg} miles):</th>
-                                <td>${data.a_amount}</td>
-                            </tr>
+                                <th>Total Distance:</th>
+                                <td>${data.total_miles} miles (${data.leg_count} legs)</td>
+                            </tr>`;
+            
+            // Add each leg detail
+            data.legs.forEach(leg => {
+                resultHTML += `
                             <tr>
-                                <th>Return Leg (${data.b_leg} miles):</th>
-                                <td>${data.b_amount}</td>
-                            </tr>
+                                <th>Leg ${leg.leg_num} (${leg.distance} miles):</th>
+                                <td>${leg.amount_formatted}</td>
+                            </tr>`;
+            });
+            
+            resultHTML += `
                             <tr>
                                 <th>Subtotal:</th>
                                 <td>${data.subtotal}</td>
