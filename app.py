@@ -81,12 +81,12 @@ def calculate():
                     })
                     leg_amounts.append(leg_amount)
                 
-                # Calculate tax if requested
+                # Calculate tax deduction if requested
                 tax = 0
                 if include_tax:
                     tax = subtotal * 0.10
                 
-                total = subtotal + tax
+                total = subtotal - tax  # Subtract tax instead of adding
                 total_raw = total  # Store raw numeric value for cutoff calculations
                 
                 # Format the result
@@ -116,12 +116,12 @@ def calculate():
                 # Calculate amount
                 amount = calculate_leg_amount(miles, trip_type)
                 
-                # Calculate tax if requested
+                # Calculate tax deduction if requested
                 tax = 0
                 if include_tax:
                     tax = amount * 0.10
                 
-                total = amount + tax
+                total = amount - tax  # Subtract tax instead of adding
                 total_raw = total  # Store raw numeric value for cutoff calculations
                 
                 # Format the result
