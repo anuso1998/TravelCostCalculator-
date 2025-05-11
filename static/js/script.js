@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.include_tax) {
                 resultHTML += `
                             <tr>
-                                <th>Tax (10%):</th>
-                                <td>${data.tax_amount}</td>
+                                <th>Tax Discount (10%):</th>
+                                <td>-${data.tax_amount}</td>
                             </tr>`;
             }
             
@@ -194,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.include_tax) {
                 resultHTML += `
                             <tr>
-                                <th>Tax (10%):</th>
-                                <td>${data.tax_amount}</td>
+                                <th>Tax Discount (10%):</th>
+                                <td>-${data.tax_amount}</td>
                             </tr>`;
             }
             
