@@ -25,7 +25,11 @@ def calculate():
         trip_type = request.form.get('trip_type', '').strip().lower()
         miles_str = request.form.get('miles', '').strip()
         is_round_trip = request.form.get('is_round_trip') == 'true'
-        include_tax = request.form.get('include_tax') == 'true'
+        
+        # Get tax inclusion parameter and ensure it's properly processed
+        include_tax_param = request.form.get('include_tax', 'false').lower()
+        include_tax = include_tax_param in ['true', 'on', '1', 'yes']
+        print(f"Tax parameter received: {include_tax_param}, Processed as: {include_tax}")
         
         # Validate trip type
         if trip_type not in ['short', 'long']:

@@ -67,6 +67,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get form data
         const formData = new FormData(calculatorForm);
         
+        // Ensure tax switch is properly set
+        const taxSwitch = document.getElementById('tax-switch');
+        if (taxSwitch.checked) {
+            formData.set('include_tax', 'true');
+        } else {
+            formData.set('include_tax', 'false');
+        }
+        
         // Send POST request to the server
         fetch('/calculate', {
             method: 'POST',
