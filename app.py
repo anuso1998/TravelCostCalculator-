@@ -31,6 +31,10 @@ def calculate():
         if trip_type not in ['short', 'long']:
             return jsonify({'error': 'Invalid trip type. Please select "short" or "long".'})
         
+        # Auto-detect round trip if '+' is in the miles string
+        if '+' in miles_str and not is_round_trip:
+            is_round_trip = True
+        
         # Check if we have a round trip with legs
         if is_round_trip:
             # Validate miles format for round trip (a+b format)

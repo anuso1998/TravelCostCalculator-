@@ -36,15 +36,18 @@
                                     <label class="form-check-label" for="round-trip-switch">Round Trip (Two Legs)</label>
                                 </div>
                                 <div class="form-text" id="round-trip-help">
-                                    For round trips, enter distances in format a+b (e.g., 25+25)
+                                    <strong>For round trips</strong>: Enter distances in format a+b (e.g., 25+25)
                                 </div>
                             </div>
                             
                             <div class="mb-3">
                                 <label for="miles" class="form-label">Distance (miles):</label>
                                 <input type="text" class="form-control" id="miles" name="miles" required>
-                                <div class="form-text" id="miles-help">
-                                    Enter distance as a single number (e.g., 25) or for round trips in format a+b (e.g., 25+30)
+                                <div class="alert alert-info mt-2 p-2" id="miles-help">
+                                    <small>
+                                        <strong>Single Trip:</strong> Enter a single number (e.g., 25)<br>
+                                        <strong>Round Trip:</strong> Enter in format a+b (e.g., 25+30) where a is first leg and b is return leg
+                                    </small>
                                 </div>
                             </div>
                             

@@ -24,6 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Auto-detect round trip format and check the switch
+    milesInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value.includes('+')) {
+            roundTripSwitch.checked = true;
+            // Trigger the change event to update help text
+            const event = new Event('change');
+            roundTripSwitch.dispatchEvent(event);
+        }
+    });
+    
     // Handle form submission
     calculatorForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -31,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide previous results/errors
         resultDiv.classList.add('d-none');
         errorDiv.classList.add('d-none');
+        
+        // Auto-check round trip switch if format contains '+'
+        const milesValue = milesInput.value.trim();
+        if (milesValue.includes('+')) {
+            roundTripSwitch.checked = true;
+        }
         
         // Get form data
         const formData = new FormData(calculatorForm);
